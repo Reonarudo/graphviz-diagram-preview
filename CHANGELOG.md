@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.0 (unreleased)
+## 0.1.0 (2026-11-01, pre-release)
 
 First version, ported from the VS Code extension
 [graphviz-diagram-preview](https://github.com/Reonarudo/graphviz-markdown-preview) 0.3.0.
@@ -33,3 +33,4 @@ First version, ported from the VS Code extension
   pop-out windows get their own elements.
 - On an Obsidian whose Chromium lacks `light-dark()`, diagrams keep their white card.
 - Commands: restart the renderer; show every diagram in the current note.
+- Mobile: the plugin is no longer desktop-only; on touch devices the source button stays visible.

@@ -54,5 +54,7 @@ The user chose the browser Worker bundle, built by the plugin.
 - The plugin's worker entry must be kept in step with the renderer's `worker.ts` when the
   renderer changes; `test/worker.test.ts` runs the embedded bundle and compares its results
   with the library's own Node runtime, byte for byte.
-- `isDesktopOnly` stays `true` until the plugin is tried on mobile, although nothing in it
-  needs Node or Electron.
+- Nothing in the plugin needs Node or Electron, so it is not desktop-only. A blob-URL Web Worker
+  and WebAssembly are available in the mobile apps' web views; checked under Obsidian's mobile
+  emulation, to be confirmed on devices through a BRAT pre-release. The 2 MB `main.js` and the
+  engine's wasm memory weigh more on a phone than pikchr's.

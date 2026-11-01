@@ -110,7 +110,11 @@ the engine. Diagrams also draw in embedded notes, hover previews, Canvas cards a
 appear in Obsidian's settings search on 1.13 and later. On an Obsidian whose built-in Chromium
 predates `light-dark()`, diagrams keep the white card in dark themes.
 
-Desktop only for now.
+Works on desktop and on Obsidian's mobile apps, where the source button stays visible (there is
+no hover to reveal it). Nothing in the plugin needs Node or Electron. On a phone, mind the size:
+`main.js` is about 2 MB, almost all of it the Graphviz engine, which is compiled when the first
+diagram is drawn; a very large graph lays out in the phone's memory with only the time limit to
+stop it.
 
 ## Development
 
