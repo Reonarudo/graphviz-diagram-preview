@@ -72,7 +72,7 @@ what it sits on: its node's or cluster's fill, or the page for edge labels and u
 graph that sets its own `bgcolor` (in the graph's body or in `graph [...]`) keeps exactly its
 author's colours on its own background in every theme. In a light theme diagrams sit on a white
 card with their exact colours. To keep every diagram on a white card, turn off **Follow dark
-themes** in the plugin's settings. See `docs/adr/0002-dark-theme-colours.md`.
+themes** in the plugin's settings.
 
 Links (`URL`, `href`) work for `http:`, `https:` and `mailto:` and open in your browser; other
 links are removed but the node stays. Images (`image=`, `<IMG SRC>`) are not supported. The
@@ -103,7 +103,7 @@ Rendering runs in a Web Worker inside Obsidian, built from
 [graphviz-renderer](https://github.com/Reonarudo/graphviz-renderer): Graphviz 16.0.0 compiled to
 WebAssembly by viz-js 3.30.0, and an allowlist sanitizer for its SVG. Nothing is downloaded,
 installed or written to disk; the worker is embedded in `main.js`, which is why that file is
-about 1.9 MB. See `docs/adr/0001-runtime-host.md`.
+about 1.9 MB.
 
 The worker starts with the first diagram drawn, so a vault without graphviz blocks never loads
 the engine. Diagrams also draw in embedded notes, hover previews, Canvas cards and exported PDFs (in light colours). Settings
