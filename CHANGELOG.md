@@ -26,5 +26,10 @@ First version, ported from the VS Code extension
   with the theme without a re-render. Graphviz's default white background gives way to the page;
   labels are checked against their node, cluster or the page. A graph with its own `bgcolor`
   keeps its exact colours in every theme. A setting keeps every diagram on a white card instead.
-- Settings: layout time limit, following dark themes, debug logging.
+- Settings: layout time limit, following dark themes, debug logging; listed in Obsidian's
+  settings search (1.13 and later).
+- The renderer starts with the first diagram drawn, not when Obsidian starts.
+- Diagrams draw in hover previews and PDF export, and are built with Obsidian's DOM helpers, so
+  pop-out windows get their own elements.
+- On an Obsidian whose Chromium lacks `light-dark()`, diagrams keep their white card.
 - Commands: restart the renderer; show every diagram in the current note.

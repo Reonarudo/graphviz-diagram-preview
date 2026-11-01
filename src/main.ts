@@ -54,8 +54,9 @@ interface Drawn {
 export default class GraphvizPlugin extends Plugin {
   settings: Settings = DEFAULT_SETTINGS;
   private toggles!: ToggleStore;
+  /** The renderer, started by the first diagram drawn (`renderer()`), not at load. */
   private host: Host | undefined;
-  private cache!: CachedRender;
+  private cache: CachedRender | undefined;
   private workerUrl: string | undefined;
   private readonly drawn = new Set<Drawn>();
   private readonly saveSoon = debounce(() => void this.persist(), 200, true);
@@ -65,8 +66,6 @@ export default class GraphvizPlugin extends Plugin {
     this.settings = readSettings(data?.settings);
     this.toggles = new ToggleStore(data?.toggles, () => this.saveSoon());
 
-    this.workerUrl = URL.createObjectURL(new Blob([WORKER_SOURCE], { type: 'text/javascript' }));
-    this.startHost();
 
     this.registerMarkdownCodeBlockProcessor(WORD, (source, el, ctx) => this.process(source, el, ctx));
     this.addSettingTab(new GraphvizSettingTab(this.app, this));
@@ -117,25 +116,33 @@ export default class GraphvizPlugin extends Plugin {
     await this.saveData({ settings: this.settings, toggles: this.toggles.toJSON() });
   }
 
-  private startHost(): void {
-    const url = this.workerUrl!;
-    this.host = createHost(
+  /**
+   * The renderer, started on first use: a vault with no graphviz blocks never starts the worker or
+   * loads the engine.
+   */
+  private renderer(): CachedRender {
+    if (this.cache) return this.cache;
+    this.workerUrl ??= URL.createObjectURL(new Blob([WORKER_SOURCE], { type: 'text/javascript' }));
+    const url = this.workerUrl;
+    const host = createHost(
       () => new Worker(url, { name: 'graphviz-diagram-preview' }) as unknown as WorkerLike,
       { timeout: this.settings.timeoutSeconds * 1000 }
     );
-    const host = this.host;
+    this.host = host;
     // Graphviz's warnings never reach the note; they are logged once per fresh render, labelled
     // with the fence's first line so the author can find it, as the VS Code extension does.
     this.cache = createCache((source) => host.render(source), 96, (source, result) => {
       if (result.status !== 'success') return;
       for (const note of result.notes) this.log(`${label(source)}: ${note}`);
     });
+    return this.cache;
   }
 
-  /** A fresh worker with the current settings, and every open note drawn again. */
+  /** Stop the worker; the next diagram starts a fresh one with the current settings. */
   private restart(): void {
     this.host?.dispose();
-    this.startHost();
+    this.host = undefined;
+    this.cache = undefined;
     this.rerender();
   }
 
@@ -154,8 +161,7 @@ export default class GraphvizPlugin extends Plugin {
   }
 
   private async process(source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext): Promise<void> {
-    const parts = buildFence(el.ownerDocument, source, fenceKey(source));
-    el.append(parts.wrapper);
+    const parts = buildFence(el, source, fenceKey(source));
     const drawn: Drawn = {
       notePath: ctx.sourcePath,
       wrapper: parts.wrapper,
@@ -215,7 +221,7 @@ export default class GraphvizPlugin extends Plugin {
       if (child.live && !parts.rendering.hasChildNodes()) showLoading(parts.rendering);
     }, LOADING_DELAY_MS);
     try {
-      const result = await this.cache.render(source);
+      const result = await this.renderer().render(source);
       if (child.live) showResult(parts.rendering, result, placement.attributes, source);
     } catch (error) {
       // The host throws only for programmer errors; as in the VS Code extension, a throw becomes

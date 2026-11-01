@@ -27,6 +27,8 @@ export function themeGraphviz(svg: Element): void {
     const value = dark.rgb === fill.rgb ? fill.value : dark.value;
     const style = (text.getAttribute('style') ?? '').split(';').filter((part) => part && !/^\s*fill\s*:/.test(part));
     text.setAttribute('style', [`fill:light-dark(${original}, ${value})`, ...style].join(';'));
+    // Where `light-dark()` is not understood the declaration is dropped; the attribute keeps the original.
+    if (!text.hasAttribute('fill')) text.setAttribute('fill', original);
   }
 }
 

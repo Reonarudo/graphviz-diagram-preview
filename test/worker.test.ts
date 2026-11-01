@@ -6,7 +6,12 @@
 import { after, before, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Worker } from 'node:worker_threads';
-import { createRuntime, type RenderResult, type Runtime } from '@reonarudo/graphviz-renderer';
+import { execFileSync } from 'node:child_process';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
+import type { RenderResult } from '@reonarudo/graphviz-renderer';
 import { bundleWorker } from '../scripts/worker-bundle.mjs';
 import { createCache } from '../src/cache';
 import { createHost, type Host, type WorkerLike } from '../src/host';
@@ -26,7 +31,6 @@ globalThis.self = {
 
 let source: string;
 let host: Host;
-let library: Runtime;
 const spawned: Worker[] = [];
 
 function spawn(): WorkerLike {
@@ -47,12 +51,30 @@ before(async () => {
   source = await bundleWorker();
   // The engine's first start compiles a megabyte of wasm; leave room on a slow machine.
   host = createHost(spawn, { timeout: 20000, startupTimeout: 30000 });
-  library = await createRuntime({ timeout: 20000, startupTimeout: 30000 });
 });
-after(async () => {
-  host.dispose();
-  await library.dispose();
-});
+after(() => host.dispose());
+
+/**
+ * The library's own results, from its Node runtime in a separate plain `node` running a script
+ * file: under the test runner Node hands the runner's `--import` flags (tsx, test/setup.ts) to
+ * every worker thread, and with them, as with `node -e`, the library's worker does not start.
+ */
+function libraryRender(sources: string[]): RenderResult[] {
+  const dir = mkdtempSync(join(tmpdir(), 'graphviz-library-'));
+  const script = join(dir, 'render.mjs');
+  const entry = pathToFileURL(join(process.cwd(), 'node_modules/@reonarudo/graphviz-renderer/dist/index.js')).href;
+  writeFileSync(script, `
+    const { createRuntime } = await import(${JSON.stringify(entry)});
+    const runtime = await createRuntime({ timeout: 20000, startupTimeout: 30000 });
+    const results = JSON.parse(process.argv[2]).map((source) => runtime.render({ source }));
+    await runtime.dispose();
+    process.stdout.write(JSON.stringify(results));`);
+  try {
+    return JSON.parse(execFileSync(process.execPath, [script, JSON.stringify(sources)], { encoding: 'utf8' })) as RenderResult[];
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+}
 
 const success = (result: RenderResult): string => {
   if (result.status !== 'success') assert.fail(`expected a diagram, got ${JSON.stringify(result)}`);
@@ -87,8 +109,9 @@ const SOURCES = [
 ];
 
 test('every result is the library\'s own, byte for byte, including ids and notes', async () => {
-  for (const body of SOURCES) {
-    assert.deepEqual(await host.render(body), library.render({ source: body }), body);
+  const expected = libraryRender(SOURCES);
+  for (const [index, body] of SOURCES.entries()) {
+    assert.deepEqual(await host.render(body), expected[index], body);
   }
 });
 

@@ -18,7 +18,7 @@ const ICON_CODE = `<svg ${LUCIDE} class="svg-icon lucide-code-2 graphviz-icon-co
 const ICON_GRAPH = `<svg ${LUCIDE} class="svg-icon lucide-network graphviz-icon-graph">` +
   '<rect x="16" y="16" width="6" height="6" rx="1"></rect><rect x="2" y="16" width="6" height="6" rx="1"></rect><rect x="9" y="2" width="6" height="6" rx="1"></rect>' +
   '<path d="M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3"></path><path d="M12 12V8"></path></svg>';
-const TOGGLE = `<button type="button" class="graphviz-toggle clickable-icon" aria-pressed="false" aria-label="Show source">${ICON_CODE}${ICON_GRAPH}</button>`;
+const TOGGLE = `<button class="graphviz-toggle clickable-icon" type="button" aria-pressed="false" aria-label="Show source">${ICON_CODE}${ICON_GRAPH}</button>`;
 
 // The DOM contract, asserted exactly once, here.
 test('every block is wrapped: toggle first, rendering slot, then the source <pre>', () => {
@@ -57,9 +57,9 @@ test('setView flips the wrapper, the button state and its name, and back', () =>
 });
 
 test('the loading line and error cards sit in the rendering slot', () => {
-  const parts = buildFence(document, 'm', fenceKey('m'));
+  const parts = buildFence(document.createElement('div'), 'm', fenceKey('m'));
   showLoading(parts.rendering);
-  assert.equal(rendering(parts.wrapper), '<p class="graphviz-loading" role="status">Rendering Graphviz diagram…</p>');
+  assert.equal(rendering(parts.wrapper), '<p class="graphviz-loading" role="status">Rendering diagram…</p>');
   showError(parts.rendering, 'Graphviz error: x');
   assert.equal(rendering(parts.wrapper), '<div class="graphviz-error" role="alert"><pre>Graphviz error: x</pre></div>');
 });
@@ -178,7 +178,7 @@ test('a diagram link is followed only for the schemes the sanitizer keeps, and o
 });
 
 test('showResult replaces whatever the slot held', () => {
-  const parts = buildFence(document, 'm', fenceKey('m'));
+  const parts = buildFence(document.createElement('div'), 'm', fenceKey('m'));
   showLoading(parts.rendering);
   showResult(parts.rendering, diagram(), {}, 'm');
   assert.equal(rendering(parts.wrapper), `<svg ${NS} class="graphviz"></svg>`);

@@ -105,6 +105,11 @@ WebAssembly by viz-js 3.30.0, and an allowlist sanitizer for its SVG. Nothing is
 installed or written to disk; the worker is embedded in `main.js`, which is why that file is
 about 1.9 MB. See `docs/adr/0001-runtime-host.md`.
 
+The worker starts with the first diagram drawn, so a vault without graphviz blocks never loads
+the engine. Diagrams also draw in embedded notes, hover previews, Canvas cards and exported PDFs (in light colours). Settings
+appear in Obsidian's settings search on 1.13 and later. On an Obsidian whose built-in Chromium
+predates `light-dark()`, diagrams keep the white card in dark themes.
+
 Desktop only for now.
 
 ## Development

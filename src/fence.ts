@@ -82,30 +82,21 @@ export interface FenceParts {
   rendering: HTMLElement;
 }
 
-/** The wrapper with its toggle, an empty rendering slot, and the source view. */
-export function buildFence(doc: Document, body: string, key: string): FenceParts {
-  const wrapper = doc.createElement('div');
-  wrapper.className = `${BASE_CLASS}-fence`;
-  wrapper.setAttribute('data-fence-key', key);
-
-  const button = doc.createElement('button');
-  button.type = 'button';
+/**
+ * The wrapper with its toggle, an empty rendering slot, and the source view, built inside
+ * `parent` (the element Obsidian hands the code block processor) with Obsidian's `createEl`, so
+ * every element belongs to the window the block is drawn in, pop-out windows included.
+ */
+export function buildFence(parent: HTMLElement, body: string, key: string): FenceParts {
+  const wrapper = parent.createDiv({ cls: `${BASE_CLASS}-fence`, attr: { 'data-fence-key': key } });
   // `clickable-icon` is Obsidian's own icon-button class, so the button takes the app's look.
-  button.className = `${BASE_CLASS}-toggle clickable-icon`;
-  button.setAttribute('aria-pressed', 'false');
-  button.setAttribute('aria-label', LABEL_SHOW_SOURCE);
-  for (const icon of [ICON_CODE, ICON_GRAPH]) button.append(parseSvg(doc, icon)!);
-
-  const rendering = doc.createElement('div');
-  rendering.className = `${BASE_CLASS}-rendering`;
-
-  const pre = doc.createElement('pre');
-  const code = doc.createElement('code');
-  code.className = `language-${BASE_CLASS}`;
-  code.textContent = body;
-  pre.append(code);
-
-  wrapper.append(button, rendering, pre);
+  const button = wrapper.createEl('button', {
+    cls: `${BASE_CLASS}-toggle clickable-icon`,
+    attr: { type: 'button', 'aria-pressed': 'false', 'aria-label': LABEL_SHOW_SOURCE }
+  });
+  for (const icon of [ICON_CODE, ICON_GRAPH]) button.append(parseSvg(wrapper.doc, icon)!);
+  const rendering = wrapper.createDiv({ cls: `${BASE_CLASS}-rendering` });
+  wrapper.createEl('pre').createEl('code', { cls: `language-${BASE_CLASS}`, text: body });
   return { wrapper, button, rendering };
 }
 
@@ -124,48 +115,29 @@ export function isSourceView(wrapper: Element): boolean {
 
 /** A status line while a render is slow to arrive. */
 export function showLoading(rendering: HTMLElement): void {
-  const doc = rendering.ownerDocument;
-  const line = doc.createElement('p');
-  line.className = `${BASE_CLASS}-loading`;
-  line.setAttribute('role', 'status');
-  line.textContent = 'Rendering Graphviz diagram…';
-  rendering.replaceChildren(line);
+  rendering.empty();
+  rendering.createEl('p', { cls: `${BASE_CLASS}-loading`, attr: { role: 'status' }, text: 'Rendering diagram…' });
 }
 
 /** An error card in place of the diagram. */
 export function showError(rendering: HTMLElement, text: string): void {
-  const doc = rendering.ownerDocument;
-  const card = doc.createElement('div');
-  card.className = `${BASE_CLASS}-error`;
-  card.setAttribute('role', 'alert');
-  const pre = doc.createElement('pre');
-  pre.textContent = text;
-  card.append(pre);
-  rendering.replaceChildren(card);
+  rendering.empty();
+  rendering.createDiv({ cls: `${BASE_CLASS}-error`, attr: { role: 'alert' } }).createEl('pre', { text });
 }
 
-/** Alt text as an accessible name inside the figure, so a caption stays outside the image role. */
-function wrap(doc: Document, diagram: Element, attributes: FenceAttributes): Element {
-  let node = diagram;
-  if (attributes.alt !== undefined) {
-    const image = doc.createElement('div');
-    image.setAttribute('role', 'img');
-    image.setAttribute('aria-label', attributes.alt);
-    image.append(node);
-    node = image;
-  }
-  if (attributes.caption === undefined && attributes.align === undefined) return node;
-  const figure = doc.createElement('figure');
-  figure.className = attributes.align
-    ? `${BASE_CLASS}-figure ${BASE_CLASS}-align-${attributes.align}`
-    : `${BASE_CLASS}-figure`;
-  figure.append(node);
-  if (attributes.caption !== undefined) {
-    const caption = doc.createElement('figcaption');
-    caption.textContent = attributes.caption;
-    figure.append(caption);
-  }
-  return figure;
+/**
+ * Put the diagram in `rendering`: in a figure when captioned or aligned, with the alt text as an
+ * accessible name inside the figure, so a caption stays outside the image role.
+ */
+function place(rendering: HTMLElement, diagram: Element, attributes: FenceAttributes): void {
+  const figure = attributes.caption === undefined && attributes.align === undefined
+    ? rendering
+    : rendering.createEl('figure', {
+      cls: attributes.align ? `${BASE_CLASS}-figure ${BASE_CLASS}-align-${attributes.align}` : `${BASE_CLASS}-figure`
+    });
+  const holder = attributes.alt === undefined ? figure : figure.createDiv({ attr: { role: 'img', 'aria-label': attributes.alt } });
+  holder.append(diagram);
+  if (attributes.caption !== undefined) figure.createEl('figcaption', { text: attributes.caption });
 }
 
 /** The root `<svg>`'s `viewBox`, in Graphviz's points, as graphviz-markdown-preview's `sized` reads it. */
@@ -252,5 +224,6 @@ export function showResult(rendering: HTMLElement, result: RenderResult, attribu
   const viewBox = svg.getAttribute('viewBox');
   const width = viewBox === null ? Number.NaN : Number(VIEWBOX_WIDTH.exec(`viewBox="${viewBox}"`)?.[1]);
   if (width > 0) svg.setAttribute('width', `${width}pt`);
-  rendering.replaceChildren(wrap(doc, svg, attributes));
+  rendering.empty();
+  place(rendering, svg, attributes);
 }
