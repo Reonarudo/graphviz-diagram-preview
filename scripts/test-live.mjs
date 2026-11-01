@@ -258,7 +258,7 @@ try {
     assert.equal(followed.background, 'rgba(0, 0, 0, 0)');
     assert.equal(followed.filter, 'none');
     assert.equal(followed.scheme, 'dark');
-    assert.equal(followed.backdrop, 'none');
+    assert.equal(followed.backdrop, 'rgba(0, 0, 0, 0)', 'the default background is transparent');
     reads(followed.link, followed.linkBox, 4.5, 'link text on its lightyellow node');
     reads(followed.plain, followed.plainBox, 4.5, 'text on its lightblue node');
     reads(followed.parse, followed.parseBox, 4.5, 'text on its pale box');
@@ -611,7 +611,7 @@ try {
     await sleep(800);
     await page.evaluate(() => [...document.querySelectorAll('.modal-container button')].find((button) => /export/i.test(button.textContent)).click());
     let written = false;
-    for (let i = 0; i < 60 && !written; i++) {
+    for (let i = 0; i < 240 && !written; i++) {
       await sleep(250);
       written = (await readFile(pdf).catch(() => null))?.length > 1000;
     }

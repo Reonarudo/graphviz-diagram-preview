@@ -212,7 +212,7 @@ test('a diagram gets dark-theme colours by role, its light colours kept verbatim
     '<polygon fill="white" stroke="none" points="0,0"/><g class="node"><ellipse fill="lightyellow" stroke="black"/><text fill="black">a</text></g></g></svg>'));
   const svg = wrapper.querySelector('.graphviz-rendering > svg')!;
   assert.equal(svg.getAttribute('class'), 'graphviz');
-  assert.match(svg.querySelector('polygon')!.getAttribute('style')!, /^fill:light-dark\(white, rgb\(30, 30, 30\)\)/);
+  assert.equal(svg.querySelector('polygon')!.getAttribute('style'), 'fill:light-dark(white, transparent)', 'the default background is transparent in dark themes');
   assert.match(svg.querySelector('ellipse')!.getAttribute('style')!, /fill:light-dark\(lightyellow, rgb\(/);
   assert.match(svg.querySelector('text')!.getAttribute('style')!, /^fill:light-dark\(black, var\(--text-normal\)\)$/);
 });

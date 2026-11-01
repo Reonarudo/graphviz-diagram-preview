@@ -12,11 +12,13 @@ import {
  * holds its arrowhead, a filled mark, before its label, which sits on the page; and a node drawn
  * without a fill (the default) has text on the page too, where a light `fontcolor` was mirrored as
  * if it sat on a dark box. Here every label's dark colour is computed again against its real
- * background: the node's or cluster's own filled shape, else the page (whose white background
- * polygon the stylesheet drops in dark themes).
+ * background: the node's or cluster's own filled shape, else the page (Graphviz's white background
+ * polygon becomes transparent in dark themes, below).
  */
 export function themeGraphviz(svg: Element): void {
   themeSvg(svg);
+  // Graphviz paints the graph's background as the first shape of the graph group.
+  clearBackgroundInDark(svg.querySelector(':scope > g.graph > polygon'));
   for (const text of svg.querySelectorAll('text')) {
     const original = text.getAttribute('fill') ?? 'black';
     const rgb = parseColor(original);
@@ -44,4 +46,16 @@ function boxOf(text: Element): Rgb | undefined {
     if (rgb) box = toLab(rgb).L < 0.4 ? inkColor(rgb, LINE_CONTRAST).rgb : areaColor(rgb).rgb;
   }
   return box;
+}
+
+/**
+ * In dark themes, `shape` (the drawing's own full-size white background) becomes transparent, so
+ * the drawing sits on whatever is behind it (the page, a callout) instead of on a box: its dark
+ * colour is `transparent`. The light colour stays the original, kept in the `fill` attribute.
+ */
+export function clearBackgroundInDark(shape: Element | null): void {
+  const original = shape?.getAttribute('fill');
+  if (!shape || !original) return;
+  const others = (shape.getAttribute('style') ?? '').split(';').filter((part) => part.trim() && !/^\s*fill\s*:/.test(part));
+  shape.setAttribute('style', [...others, `fill:light-dark(${original}, transparent)`].join(';'));
 }

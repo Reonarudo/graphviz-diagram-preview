@@ -33,13 +33,6 @@ body.theme-dark.graphviz-follow-dark svg.graphviz {
   }
 }
 
-/* Graphviz paints the graph's background as the first shape of the graph group, white by default.
-   Its dark colour is the default page; on a callout or another background it would show as a box,
-   so in dark themes it is dropped and the page shows through. */
-body.theme-dark.graphviz-follow-dark svg.graphviz:not(.graphviz-own-background) > g.graph > polygon:first-of-type {
-  fill: none !important;
-}
-
 /* A graph with its own `bgcolor` is the author's picture: exact colours on its own background in
    every theme, so no card around it and no dark colours (src/background.ts). */
 svg.graphviz.graphviz-own-background,
