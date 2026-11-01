@@ -1,9 +1,9 @@
 {
   "id": "graphviz-diagram-preview",
   "name": "Graphviz Diagram Preview",
-  "version": "0.1.0",
-  "minAppVersion": "1.5.0",
-  "description": "Render graphviz code blocks as diagrams, with a button to flip each one between the diagram and its source.",
+  "version": "0.1.1",
+  "minAppVersion": "1.14.4",
+  "description": "Render Graphviz code blocks as diagrams, with a button to flip each one between the diagram and its source.",
   "author": "Leonardo Marques",
   "authorUrl": "https://github.com/Reonarudo",
   "isDesktopOnly": false
