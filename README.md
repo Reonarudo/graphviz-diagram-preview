@@ -1,143 +1,129 @@
 # Graphviz Diagram Preview
 
-Renders [Graphviz](https://graphviz.org) (DOT) code blocks as diagrams in Obsidian, in Reading
-view and Live Preview. A port of the VS Code extension of the same name.
-
-## Usage
-
-Write DOT source in a code block tagged `graphviz`:
+Draw graphs in your notes with [Graphviz](https://graphviz.org) and its DOT language. Write a
+`graphviz` code block and the graph appears in its place, in Reading view and Live Preview, on
+desktop and mobile. No Graphviz installation needed.
 
 ~~~markdown
 ```graphviz
 digraph {
   rankdir=LR
-  source -> parse -> render
+  idea -> draft -> review -> published
+  review -> draft [label="changes"]
 }
 ```
 ~~~
 
-Only `graphviz` blocks are claimed; `dot` blocks are left alone. To use another layout engine,
-set it inside the source, e.g. `layout=neato`.
+## Features
 
-## Fence attributes
+- Graphs in Reading view, Live Preview, embedded notes, hover previews, Canvas cards and exported
+  PDFs.
+- Captions, alignment and alt text for each graph.
+- Clickable links in nodes and edges.
+- A button to see a graph's code without leaving Reading view.
+- Follows your theme: graphs stay readable in dark themes.
+- Works offline. Graphviz is built into the plugin.
 
-A `graphviz` fence may carry an attribute block:
+## Install
+
+1. In Obsidian, open **Settings → Community plugins** and turn off **Restricted mode** if it's on.
+2. Select **Browse**, search for **Graphviz Diagram Preview**, then select **Install** and
+   **Enable**.
+
+To install by hand instead, download `main.js`, `manifest.json` and `styles.css` from the
+[latest release](https://github.com/Reonarudo/graphviz-diagram-preview/releases/latest) into
+`<your vault>/.obsidian/plugins/graphviz-diagram-preview/`, then enable the plugin.
+
+## Writing graphs
+
+Put DOT code in a code block tagged `graphviz`. Blocks tagged `dot` are left as plain code. The
+[DOT language guide](https://graphviz.org/doc/info/lang.html) explains the syntax. To use another
+layout engine, set it in the graph, for example `layout=neato`.
+
+### Captions and other options
+
+Add options in braces after `graphviz`:
 
 ~~~markdown
-```graphviz {alt="Three stages, left to right" caption="Figure 1: Pipeline" align="center"}
-digraph { rankdir=LR; source -> parse -> render }
+```graphviz {caption="Figure 1: Publishing" align="center" alt="Four stages from idea to published"}
+digraph { rankdir=LR; idea -> draft -> review -> published }
 ```
 ~~~
 
-- `alt`: a description for readers who cannot see the diagram.
-- `caption`: plain text shown beneath the diagram.
-- `align`: `left`, `center` or `right`.
-- `class`: an extra CSS class on the `<svg>`, alongside the built-in `graphviz` class.
+| Option | What it does |
+| --- | --- |
+| `caption` | Text shown under the graph. |
+| `align` | `left`, `center` or `right`. |
+| `alt` | A description read aloud by screen readers. |
+| `class` | A CSS class, for styling the graph with a CSS snippet. |
 
-Values must be quoted, with single or double quotes; a backslash escapes a matching quote or a
-backslash. Values are plain text, never Markdown or HTML. A mistyped or malformed attribute
-never costs you the diagram: it is ignored, and with **Debug logging** on (plugin settings) a
-note about it is written to the developer console.
+Put each value in quotes. Values are plain text, not Markdown. If an option is misspelled, it's
+ignored and the graph still appears.
 
-Attributes are read from the note's text. Where Obsidian renders a block without its note (some
-embeds and exports), the diagram renders bare.
+### Links
 
-## Viewing the source
+Nodes and edges with a `URL` or `href` open in your browser when selected. Links to `http:`,
+`https:` and `mailto:` addresses work; other links are removed and the node stays.
 
-The plugin follows Obsidian's own handling of Mermaid diagrams:
+### Fonts
 
-- **Live Preview:** hovering a diagram shows Obsidian's **Edit this block** button in its top
-  corner, which opens the code block for editing, as for Mermaid. Live Preview always shows the
+Labels fit their shapes best in these fonts: Times, Helvetica or Arial, Courier, DejaVu Sans,
+Consolas, Nunito and Trebuchet. Graphviz measures other fonts as Times, so long labels may
+overflow. Name a single font, such as `fontname="Helvetica"`, not a list.
+
+## Viewing the code
+
+- **Reading view:** hover over a graph and select the **</>** button in its corner to see the
+  code. Select it again to see the graph. Obsidian remembers which graphs you switched, even after
+  a restart. **Show every diagram in this note** in the command palette switches them all back.
+- **Live Preview:** select Obsidian's own **Edit this block** button, just as for a Mermaid
   diagram.
-- **Reading view:** hovering a diagram shows a button of the same look in the same corner,
-  **Show source**, which flips the block to its source text; **Show diagram** flips it back. A
-  flipped block stays flipped across re-renders, reopening the note and restarting Obsidian, and
-  in every Reading view of the note. Two blocks with the same body are told apart by their order.
-  **Show every diagram in this note** in the command palette flips them all back.
+- **Phones and tablets:** the button is always visible.
 
-## Errors and limits
+## Dark and light themes
 
-A DOT syntax error is shown in place of the diagram, with the offending source line. Layout is
-limited to 3 seconds per diagram (adjustable in settings, from half a second to a minute) and
-64 000 characters of source; a graph that takes longer shows a timeout message until its source
-changes or the renderer is restarted. Graphviz warnings (unknown shapes, fonts without metrics)
-never appear in the note; with **Debug logging** on they go to the developer console, once per
-diagram.
+Graphs follow your theme. In a dark theme, lines and labels are lightened just enough to read,
+filled shapes are darkened, colours keep their hue, and the white background disappears. In a
+light theme, graphs appear on a white card with their exact colours.
 
-Diagrams follow the theme, as Mermaid diagrams do. In a dark theme they sit on the page in
-dark-theme colours: lines and text are lightened only as far as needed to read, filled shapes are
-darkened, and hues are kept, so colours that already read on a dark page stay as they are.
-Graphviz's default white background gives way to the page, and every label is checked against
-what it sits on: its node's or cluster's fill, or the page for edge labels and unfilled nodes. A
-graph that sets its own `bgcolor` (in the graph's body or in `graph [...]`) keeps exactly its
-author's colours on its own background in every theme. In a light theme diagrams sit on a white
-card with their exact colours. To keep every diagram on a white card, turn off **Follow dark
-themes** in the plugin's settings.
+A graph that sets its own background with `bgcolor` always keeps its exact colours. To do the same
+for every graph, turn off **Follow dark themes** in the plugin's settings.
 
-Links (`URL`, `href`) work for `http:`, `https:` and `mailto:` and open in your browser; other
-links are removed but the node stays. Images (`image=`, `<IMG SRC>`) are not supported. The
-plugin reads no files.
+## Settings
 
-## Fonts
+| Setting | What it does |
+| --- | --- |
+| **Layout time limit** | How long a graph's layout may take before it's shown as an error. 3 seconds by default, from 0.5 to 60. |
+| **Follow dark themes** | On by default. Turn off to keep every graph on a white card. |
+| **Debug logging** | Writes ignored options and Graphviz warnings, such as unknown fonts, to the developer console. |
 
-Graphviz measures text with built-in width tables, so labels fit their shapes only for these
-families: Times / Times New Roman, Helvetica / Arial, Courier / Courier New, DejaVu Sans,
-Consolas, Nunito, Trebuchet. Other fonts are measured as Times, with a warning. Name a single
-family: a CSS-style list such as `fontname="Helvetica,Arial,sans-serif"` or a generic family
-such as `sans-serif` is measured as Times.
+## Commands
 
-## Settings and commands
+| Command | What it does |
+| --- | --- |
+| **Show every diagram in this note** | Switches every block in the note back from code to graph. |
+| **Restart renderer** | Starts Graphviz afresh and redraws open notes. |
 
-- **Layout time limit**: seconds per diagram, 0.5 to 60; default 3. Changing it restarts the
-  renderer.
-- **Follow dark themes**: on by default; off keeps the white card with exact colours in dark
-  themes too.
-- **Debug logging**: ignored attributes and Graphviz warnings in the developer console.
-- **Restart renderer** (command): a fresh Graphviz worker, and every open note drawn again.
-- **Show every diagram in this note** (command): flips every block of the note back to its
-  diagram in Reading view.
+## When something goes wrong
 
-## How it renders
+- **A mistake in the code:** the error and the line it's on appear in place of the graph. Fix the
+  code and the graph comes back.
+- **"Took longer than…":** the layout hit the **Layout time limit**. Simplify the graph, or raise
+  the limit in settings.
+- **Images:** `image=` and `<IMG>` in labels aren't supported.
+- **Large blocks:** a block may hold up to 64,000 characters.
 
-Rendering runs in a Web Worker inside Obsidian, built from
-[graphviz-renderer](https://github.com/Reonarudo/graphviz-renderer): Graphviz 16.0.0 compiled to
-WebAssembly by viz-js 3.30.0, and an allowlist sanitizer for its SVG. Nothing is downloaded,
-installed or written to disk; the worker is embedded in `main.js`, which is why that file is
-about 1.9 MB.
+## Privacy
 
-The worker starts with the first diagram drawn, so a vault without graphviz blocks never loads
-the engine. Diagrams also draw in embedded notes, hover previews, Canvas cards and exported PDFs (in light colours). Settings
-appear in Obsidian's settings search. On an Obsidian whose built-in Chromium
-predates `light-dark()`, diagrams keep the white card in dark themes.
+Graphs are drawn on your device, inside Obsidian. The plugin doesn't connect to the internet,
+doesn't collect any data, and doesn't read or write any files. Links in a graph open in your
+browser only when you select them.
 
-Works on desktop and on Obsidian's mobile apps, where the source button stays visible (there is
-no hover to reveal it). Nothing in the plugin needs Node or Electron. On a phone, mind the size:
-`main.js` is about 2 MB, almost all of it the Graphviz engine, which is compiled when the first
-diagram is drawn; a very large graph lays out in the phone's memory with only the time limit to
-stop it.
+## Credits
 
-## Development
-
-Requires Node 22 or newer (see `.nvmrc`).
-
-~~~sh
-npm ci
-npm run lint        # tsc --noEmit
-npm test            # node --test: attributes, toggle, scanner, DOM, cache, host, and the real worker bundle
-npm run build       # main.js, with the worker bundle embedded
-npm run vault       # link this repo into ../test-vault as an enabled plugin
-npm run test:live   # a real Obsidian with a throwaway profile and vault, driven over CDP
-~~~
-
-`npm run test:live` needs Obsidian installed (`OBSIDIAN_EXECUTABLE` overrides the path); it
-prints where it saved light and dark screenshots.
-
-The renderer is pinned to a release tarball in `package.json` (`.npmrc` sets
-`allow-remote=root` for npm 12). To take a new release, edit the URL, run `npm install`, check
-`src/worker/entry.ts` against the release's `src/worker.ts`, and run the tests;
-`test/worker.test.ts` compares the bundle's results with the library's own, byte for byte.
-
-## License
-
-MIT for this plugin; Graphviz, embedded in `main.js` through graphviz-renderer, is EPL-2.0. See
+Graphs are drawn by [Graphviz](https://graphviz.org), through [Viz.js](https://github.com/mdaines/viz-js).
+The licenses of the software built into this plugin are listed in
 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+Released under the [MIT License](LICENSE). To build or change the plugin, see
+[DEVELOPMENT.md](DEVELOPMENT.md).
